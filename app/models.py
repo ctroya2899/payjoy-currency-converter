@@ -6,7 +6,7 @@ class ConversionResponse(BaseModel):
 
     amount_usd: float = Field(gt=0, description="Original amount in USD")
     currency: str = Field(min_length=3, max_length=3, description="Target currency code (ISO 4217)")
-    convert: float = Field(gt=0, description="Amount converted tothe target currency")
+    converted: float = Field(gt=0, description="Amount converted tothe target currency")
     rate: float = Field(gt=0, description="Exchange rate used for the conversion")
 
 
