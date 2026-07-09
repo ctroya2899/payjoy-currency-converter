@@ -10,7 +10,7 @@
 
     body {
       font-family: system-ui, -apple-system, sans-serif;
-      background: #f0f4f8;
+      background: #0b141a;
       min-height: 100vh;
       display: flex;
       justify-content: center;
@@ -21,84 +21,113 @@
     .app-shell {
       width: 100%;
       max-width: 420px;
-      height: 560px;
-      background: #fff;
+      height: 600px;
+      background: #111b21;
       border-radius: 16px;
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
       overflow: hidden;
       display: flex;
       flex-direction: column;
     }
 
     .chat-header {
-      background: #ffffff;
-      color: #2f3438;
-      padding: 16px 20px;
+      background: #202c33;
+      padding: 12px 16px;
       display: flex;
       align-items: center;
       gap: 12px;
-      border-bottom: 3px solid #8DC63F;
+      border-bottom: 2px solid #8DC63F;
       flex-shrink: 0;
     }
 
-    .chat-header img { height: 26px; }
-    .chat-header h1 { font-size: 1.05rem; font-weight: 600; color: #2f3438; }
-    .chat-header p { font-size: 0.78rem; color: #6b7280; margin-top: 2px; }
+    .chat-header img {
+      height: 24px;
+      background: #ffffff;
+      border-radius: 6px;
+      padding: 3px 6px;
+    }
+    .chat-header h1 { font-size: 1rem; font-weight: 600; color: #e9edef; }
+    .chat-header p { font-size: 0.75rem; color: #8DC63F; margin-top: 2px; }
 
     #n8n-chat {
       flex: 1;
       min-height: 0;
     }
 
-    .setup-banner {
-      margin: 16px;
-      padding: 14px;
-      border-radius: 12px;
-      background: #fff8e6;
-      color: #7a5b00;
-      font-size: 0.85rem;
-      line-height: 1.45;
-      border: 1px solid #f2d98b;
-    }
-
-    .setup-banner code {
-      display: block;
-      margin-top: 8px;
-      padding: 8px;
-      background: #fff;
-      border-radius: 8px;
-      font-size: 0.78rem;
-      word-break: break-all;
-    }
-
-    /* PayJoy theme overrides for @n8n/chat */
+    /* WhatsApp-style dark theme for @n8n/chat */
     :root {
       --chat--color-primary: #8DC63F;
       --chat--color-primary-shade-50: #7ab52f;
       --chat--color-primary-shade-100: #6aa328;
-      --chat--color-secondary: #2f3438;
-      --chat--color-secondary-shade-50: #3d4449;
-      --chat--color-white: #ffffff;
-      --chat--color-light: #eef7e2;
-      --chat--color-light-shade-50: #e2f0d4;
-      --chat--color-light-shade-100: #d4e6c0;
-      --chat--color-dark: #2f3438;
-      --chat--color-disabled: #9ca3af;
-      --chat--message--bot--background: #eef7e2;
-      --chat--message--bot--color: #2f3438;
-      --chat--message--user--background: #2f3438;
-      --chat--message--user--color: #ffffff;
-      --chat--toggle--background: #8DC63F;
-      --chat--toggle--color: #2f3438;
-      --chat--toggle--active--background: #7ab52f;
-      --chat--header--background: #ffffff;
-      --chat--header--color: #2f3438;
+      --chat--color-secondary: #005c4b;
+      --chat--color-secondary-shade-50: #00695a;
+      --chat--color-white: #e9edef;
+      --chat--color-light: #202c33;
+      --chat--color-light-shade-50: #2a3942;
+      --chat--color-light-shade-100: #334049;
+      --chat--color-medium: #3b4a54;
+      --chat--color-dark: #0b141a;
+      --chat--color-disabled: #667781;
+      --chat--color-typing: #8696a0;
+
+      /* chat body */
+      --chat--body--background: #0b141a;
+
+      /* bot bubbles: dark gray, light text */
+      --chat--message--bot--background: #202c33;
+      --chat--message--bot--color: #e9edef;
+
+      /* user bubbles: WhatsApp green, light text */
+      --chat--message--user--background: #005c4b;
+      --chat--message--user--color: #e9edef;
+
+      --chat--message--font-size: 0.9rem;
+      --chat--message--padding: 10px 14px;
+      --chat--message--border-radius: 10px;
+
+      /* input area */
+      --chat--input--background: #2a3942;
+      --chat--input--text-color: #e9edef;
+      --chat--input--placeholder--color: #8696a0;
+      --chat--input--send--button--background: transparent;
+      --chat--input--send--button--color: #8DC63F;
+      --chat--input--send--button--background-hover: transparent;
+      --chat--input--send--button--color-hover: #a5d95f;
+      --chat--input--border: none;
+
+      --chat--header--background: #202c33;
+      --chat--header--color: #e9edef;
       --chat--window--width: 100%;
       --chat--window--height: 100%;
       --chat--border-radius: 0;
     }
 
+    /* hide n8n's own header and footer, keep only the chat */
     #n8n-chat .chat-header { display: none; }
+    #n8n-chat .chat-footer { display: none; }
+    #n8n-chat .chat-powered-by { display: none; }
+
+    /* dark background for chat body and input */
+    #n8n-chat .chat-body,
+    #n8n-chat .chat-messages-list,
+    #n8n-chat .chat-layout {
+      background: #0b141a;
+    }
+
+    #n8n-chat .chat-input,
+    #n8n-chat .chat-inputs {
+      background: #202c33;
+      border-top: 1px solid #2a3942;
+    }
+
+    #n8n-chat textarea,
+    #n8n-chat input {
+      background: #2a3942 !important;
+      color: #e9edef !important;
+      border-radius: 8px;
+    }
+
+    #n8n-chat textarea::placeholder { color: #8696a0; }
   </style>
 </head>
 <body>
@@ -107,15 +136,8 @@
       <img src="payjoy-logo.png" alt="PayJoy" />
       <div>
         <h1>Currency Assistant</h1>
-        <p>AI-powered conversion to local currency</p>
+        <p>online</p>
       </div>
-    </div>
-
-    <div id="setup-banner" class="setup-banner" hidden>
-      Configure your n8n webhook in
-      <strong>docs/demo/chat-config.js</strong>
-      and redeploy GitHub Pages.
-      <code id="setup-example"></code>
     </div>
 
     <div id="n8n-chat"></div>
@@ -125,37 +147,31 @@
   <script type="module">
     const webhookUrl = (window.N8N_WEBHOOK_URL || "").trim();
 
-    if (!webhookUrl) {
-      document.getElementById("setup-banner").hidden = false;
-      document.getElementById("setup-example").textContent =
-        'window.N8N_WEBHOOK_URL = "https://yourname.app.n8n.cloud/webhook/.../chat";';
-    } else {
-      const { createChat } = await import(
-        "https://cdn.jsdelivr.net/npm/@n8n/chat/dist/chat.bundle.es.js"
-      );
+    const { createChat } = await import(
+      "https://cdn.jsdelivr.net/npm/@n8n/chat/dist/chat.bundle.es.js"
+    );
 
-      createChat({
-        webhookUrl,
-        target: "#n8n-chat",
-        mode: "fullscreen",
-        showWelcomeScreen: false,
-        loadPreviousSession: false,
-        enableStreaming: false,
-        initialMessages: [
-          "Hi! I'm PayJoy's currency assistant.",
-          'Ask me anything like "How much is 200 dollars in Brazilian reais?"',
-        ],
-        i18n: {
-          en: {
-            title: "PayJoy Assistant",
-            subtitle: "Currency conversion powered by AI",
-            footer: "",
-            getStarted: "New conversation",
-            inputPlaceholder: "Type your question...",
-          },
+    createChat({
+      webhookUrl,
+      target: "#n8n-chat",
+      mode: "fullscreen",
+      showWelcomeScreen: false,
+      loadPreviousSession: false,
+      enableStreaming: false,
+      initialMessages: [
+        "Hi! I'm PayJoy's currency assistant.",
+        'Ask me anything like "How much is 200 dollars in Brazilian reais?"',
+      ],
+      i18n: {
+        en: {
+          title: "",
+          subtitle: "",
+          footer: "",
+          getStarted: "New conversation",
+          inputPlaceholder: "Type a message",
         },
-      });
-    }
+      },
+    });
   </script>
 </body>
 </html>
