@@ -4,9 +4,10 @@
     {
       "parameters": {
         "public": true,
-        "mode": "hostedChat",
+        "mode": "webhook",
         "initialMessages": "Hi! I'm PayJoy's currency assistant. Ask me to convert any USD amount to your local currency — e.g. \"How much is 200 dollars in Brazilian reais?\"",
         "options": {
+          "allowedOrigins": "https://ctroya2899.github.io",
           "title": "PayJoy Assistant",
           "subtitle": "Currency conversion powered by AI",
           "inputPlaceholder": "e.g. How much is 200 USD in BRL?"
@@ -35,7 +36,7 @@
     },
     {
       "parameters": {
-        "modelName": "models/gemini-2.0-flash",
+        "modelName": "models/gemini-2.5-flash",
         "options": {
           "temperature": 0.2
         }
