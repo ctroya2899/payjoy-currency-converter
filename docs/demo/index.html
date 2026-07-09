@@ -4,8 +4,10 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>PayJoy Currency Assistant</title>
+  <link href="https://cdn.jsdelivr.net/npm/@n8n/chat/dist/style.css" rel="stylesheet" />
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
+
     body {
       font-family: system-ui, -apple-system, sans-serif;
       background: #f0f4f8;
@@ -15,17 +17,19 @@
       align-items: center;
       padding: 16px;
     }
-    .chat-container {
+
+    .app-shell {
       width: 100%;
       max-width: 420px;
+      height: 560px;
       background: #fff;
       border-radius: 16px;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
       overflow: hidden;
       display: flex;
       flex-direction: column;
-      height: 560px;
     }
+
     .chat-header {
       background: #ffffff;
       color: #2f3438;
@@ -34,155 +38,124 @@
       align-items: center;
       gap: 12px;
       border-bottom: 3px solid #8DC63F;
+      flex-shrink: 0;
     }
+
     .chat-header img { height: 26px; }
     .chat-header h1 { font-size: 1.05rem; font-weight: 600; color: #2f3438; }
     .chat-header p { font-size: 0.78rem; color: #6b7280; margin-top: 2px; }
-    .messages {
+
+    #n8n-chat {
       flex: 1;
-      overflow-y: auto;
-      padding: 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
+      min-height: 0;
     }
-    .bubble {
-      max-width: 85%;
-      padding: 10px 14px;
-      border-radius: 16px;
-      font-size: 0.9rem;
-      line-height: 1.4;
+
+    .setup-banner {
+      margin: 16px;
+      padding: 14px;
+      border-radius: 12px;
+      background: #fff8e6;
+      color: #7a5b00;
+      font-size: 0.85rem;
+      line-height: 1.45;
+      border: 1px solid #f2d98b;
     }
-    .bubble.bot {
-      background: #eef7e2;
-      color: #2f3438;
-      align-self: flex-start;
-      border-bottom-left-radius: 4px;
+
+    .setup-banner code {
+      display: block;
+      margin-top: 8px;
+      padding: 8px;
+      background: #fff;
+      border-radius: 8px;
+      font-size: 0.78rem;
+      word-break: break-all;
     }
-    .bubble.user {
-      background: #2f3438;
-      color: #ffffff;
-      align-self: flex-end;
-      border-bottom-right-radius: 4px;
+
+    /* PayJoy theme overrides for @n8n/chat */
+    :root {
+      --chat--color-primary: #8DC63F;
+      --chat--color-primary-shade-50: #7ab52f;
+      --chat--color-primary-shade-100: #6aa328;
+      --chat--color-secondary: #2f3438;
+      --chat--color-secondary-shade-50: #3d4449;
+      --chat--color-white: #ffffff;
+      --chat--color-light: #eef7e2;
+      --chat--color-light-shade-50: #e2f0d4;
+      --chat--color-light-shade-100: #d4e6c0;
+      --chat--color-dark: #2f3438;
+      --chat--color-disabled: #9ca3af;
+      --chat--message--bot--background: #eef7e2;
+      --chat--message--bot--color: #2f3438;
+      --chat--message--user--background: #2f3438;
+      --chat--message--user--color: #ffffff;
+      --chat--toggle--background: #8DC63F;
+      --chat--toggle--color: #2f3438;
+      --chat--toggle--active--background: #7ab52f;
+      --chat--header--background: #ffffff;
+      --chat--header--color: #2f3438;
+      --chat--window--width: 100%;
+      --chat--window--height: 100%;
+      --chat--border-radius: 0;
     }
-    .bubble.error { background: #fde8e8; color: #9b1c1c; }
-    .input-area {
-      display: flex;
-      gap: 8px;
-      padding: 12px 16px;
-      border-top: 1px solid #e5e7eb;
-    }
-    .input-area input {
-      flex: 1;
-      border: 1px solid #d1d5db;
-      border-radius: 24px;
-      padding: 10px 16px;
-      font-size: 0.9rem;
-      outline: none;
-    }
-    .input-area input:focus { border-color: #8DC63F; }
-    .input-area button {
-      background: #8DC63F;
-      color: #2f3438;
-      border: none;
-      border-radius: 50%;
-      width: 42px;
-      height: 42px;
-      cursor: pointer;
-      font-size: 1.1rem;
-    }
-    .input-area button:disabled { opacity: 0.5; cursor: not-allowed; }
-    .typing { font-size: 0.8rem; color: #6b7280; padding: 0 16px 8px; }
+
+    #n8n-chat .chat-header { display: none; }
   </style>
 </head>
 <body>
-  <div class="chat-container">
+  <div class="app-shell">
     <div class="chat-header">
       <img src="payjoy-logo.png" alt="PayJoy" />
       <div>
         <h1>Currency Assistant</h1>
-        <p>Convert your installment to local currency</p>
+        <p>AI-powered conversion to local currency</p>
       </div>
     </div>
-    <div class="messages" id="messages">
-      <div class="bubble bot">
-        Hi! Tell me the amount in USD and currency, e.g. <strong>200 BRL</strong>
-      </div>
+
+    <div id="setup-banner" class="setup-banner" hidden>
+      Configure your n8n webhook in
+      <strong>docs/demo/chat-config.js</strong>
+      and redeploy GitHub Pages.
+      <code id="setup-example"></code>
     </div>
-    <div class="typing" id="typing" style="display:none">Converting...</div>
-    <div class="input-area">
-      <input id="userInput" type="text" placeholder="e.g. 200 BRL" autocomplete="off" />
-      <button id="sendBtn" onclick="sendMessage()">➤</button>
-    </div>
+
+    <div id="n8n-chat"></div>
   </div>
 
-  <script>
-    const API_URL = "https://payjoy-currency-converter.onrender.com/convert";
+  <script src="chat-config.js"></script>
+  <script type="module">
+    const webhookUrl = (window.N8N_WEBHOOK_URL || "").trim();
 
-    const messagesEl = document.getElementById("messages");
-    const inputEl = document.getElementById("userInput");
-    const typingEl = document.getElementById("typing");
-    const sendBtn = document.getElementById("sendBtn");
+    if (!webhookUrl) {
+      document.getElementById("setup-banner").hidden = false;
+      document.getElementById("setup-example").textContent =
+        'window.N8N_WEBHOOK_URL = "https://yourname.app.n8n.cloud/webhook/.../chat";';
+    } else {
+      const { createChat } = await import(
+        "https://cdn.jsdelivr.net/npm/@n8n/chat/dist/chat.bundle.es.js"
+      );
 
-    function addBubble(text, type) {
-      const div = document.createElement("div");
-      div.className = `bubble ${type}`;
-      div.textContent = text;
-      messagesEl.appendChild(div);
-      messagesEl.scrollTop = messagesEl.scrollHeight;
+      createChat({
+        webhookUrl,
+        target: "#n8n-chat",
+        mode: "fullscreen",
+        showWelcomeScreen: false,
+        loadPreviousSession: true,
+        enableStreaming: false,
+        initialMessages: [
+          "Hi! I'm PayJoy's currency assistant.",
+          'Ask me anything like "How much is 200 dollars in Brazilian reais?"',
+        ],
+        i18n: {
+          en: {
+            title: "PayJoy Assistant",
+            subtitle: "Currency conversion powered by AI",
+            footer: "",
+            getStarted: "New conversation",
+            inputPlaceholder: "Type your question...",
+          },
+        },
+      });
     }
-
-    function parseInput(text) {
-      const match = text.trim().match(/(\d+(?:\.\d+)?)\s*([A-Za-z]{3})/);
-      if (!match) return null;
-      return { amount: match[1], currency: match[2].toUpperCase() };
-    }
-
-    async function sendMessage() {
-      const text = inputEl.value.trim();
-      if (!text) return;
-
-      addBubble(text, "user");
-      inputEl.value = "";
-      sendBtn.disabled = true;
-      typingEl.style.display = "block";
-
-      const parsed = parseInput(text);
-      if (!parsed) {
-        typingEl.style.display = "none";
-        addBubble('Please use format like "200 BRL" or "150 MXN".', "error");
-        sendBtn.disabled = false;
-        return;
-      }
-
-      try {
-        const url = `${API_URL}?amount=${parsed.amount}&currency=${parsed.currency}`;
-        const res = await fetch(url);
-        const data = await res.json();
-
-        typingEl.style.display = "none";
-
-        if (res.ok && data.converted) {
-          addBubble(
-            `$${data.amount_usd} USD equals approximately ${data.converted} ${data.currency} (rate: ${data.rate}).`,
-            "bot"
-          );
-        } else {
-          const detail = data.detail || "Could not convert. Try BRL, MXN, COP or ZAR.";
-          addBubble(`Sorry, ${detail}`, "error");
-        }
-      } catch (err) {
-        typingEl.style.display = "none";
-        addBubble("I can't reach the server right now. Please try again in a minute.", "error");
-      }
-
-      sendBtn.disabled = false;
-      inputEl.focus();
-    }
-
-    inputEl.addEventListener("keydown", (e) => {
-      if (e.key === "Enter") sendMessage();
-    });
   </script>
 </body>
 </html>
