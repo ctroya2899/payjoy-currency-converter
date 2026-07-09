@@ -10,7 +10,7 @@
 
     body {
       font-family: system-ui, -apple-system, sans-serif;
-      background: #0b141a;
+      background: #f0f4f8;
       min-height: 100vh;
       display: flex;
       justify-content: center;
@@ -102,10 +102,10 @@
       --chat--border-radius: 0;
     }
 
-    /* hide n8n's own header and footer, keep only the chat */
+    /* hide n8n's own header, keep only the chat */
     #n8n-chat .chat-header { display: none; }
-    #n8n-chat .chat-footer { display: none; }
-    #n8n-chat .chat-powered-by { display: none; }
+    #n8n-chat .chat-powered-by,
+    #n8n-chat [class*="powered"] { display: none; }
 
     /* dark background for chat body and input */
     #n8n-chat .chat-body,
