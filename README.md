@@ -18,22 +18,9 @@ The solution has three components: a **REST API** (Python/FastAPI), an **AI-powe
 
 ## Architecture
 
-```
-Customer
-   │
-   ▼
-Web chat (GitHub Pages, @n8n/chat widget)
-   │
-   ▼
-n8n Cloud — AI Agent (Google Gemini)
-   │  interprets natural language, extracts amount + currency,
-   │  and calls the API as a tool (never guesses rates)
-   ▼
-REST API (FastAPI on Render) — GET /convert
-   │
-   ▼
-ExchangeRate API (live rates, cached 5 min)
-```
+![Solution Architecture](docs/Solution%20Architecture%20-%20visual%20selection.png)
+
+Request path: **Web chat** (GitHub Pages, `@n8n/chat` widget) → **n8n Cloud AI Agent** (Google Gemini interprets natural language and calls the API as a tool — never guesses rates) → **REST API** (FastAPI on Render, `GET /convert`) → **ExchangeRate API** (live rates, cached 5 min).
 
 The AI layer is fully decoupled from the business layer: the model only handles conversation, while every rate comes from the API. Swapping Gemini for another model, or adding a new channel (WhatsApp, IVR), requires no changes to the API.
 
@@ -121,7 +108,11 @@ The agent's system prompt enforces that **every rate must come from the API tool
 
 ### Conversation examples
 
-Happy path:
+The designed conversation flow (happy path):
+
+<img src="docs/bot%20conversation%20happy.png" alt="Bot conversation - happy path" width="420" />
+
+Real conversations from the live bot:
 
 > **User:** How much is 150 dollars in Mexican pesos?
 > **Bot:** $150 USD equals approximately $2,636.82 MXN (rate: 17.5788).
@@ -131,7 +122,7 @@ Error handled gracefully (unsupported currency):
 > **User:** How much is 100 dollars in galactic credits?
 > **Bot:** I'm sorry, but I cannot convert to 'galactic credits' as it is not a supported currency. Please provide a valid ISO 4217 currency code (e.g., BRL, MXN, COP, ZAR).
 
-Screenshots of both conversations are in [`docs/`](docs/).
+The error-path design mockup is in [`docs/bot conversation sad.png`](docs/bot%20conversation%20sad.png).
 
 ## Component 3 — Technical Choices
 
