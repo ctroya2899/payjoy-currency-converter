@@ -1,0 +1,104 @@
+{
+    "name": "PayJoy Currency Converter WhatsApp v1",
+    "nodes": [
+      {
+        "parameters": {
+          "httpMethod": "POST",
+          "path": "payjoy-whatsapp",
+          "responseMode": "lastNode",
+          "options": {}
+        },
+        "id": "webhook-twilio",
+        "name": "Twilio WhatsApp Webhook",
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 2,
+        "position": [0, 0],
+        "webhookId": "payjoy-whatsapp-webhook"
+      },
+      {
+        "parameters": {
+          "promptType": "define",
+          "text": "={{ $json.body.Body }}",
+          "options": {
+            "systemMessage": "You are PayJoy's WhatsApp currency assistant. ALWAYS use convert_currency tool for rates. Never guess. Keep answers short and friendly. Show USD amount, converted amount, currency and rate."
+          }
+        },
+        "id": "ai-agent-wa",
+        "name": "AI Agent",
+        "type": "@n8n/n8n-nodes-langchain.agent",
+        "typeVersion": 1.7,
+        "position": [300, 0]
+      },
+      {
+        "parameters": {
+          "model": "gpt-4o-mini",
+          "options": { "temperature": 0.2 }
+        },
+        "id": "openai-model-wa",
+        "name": "OpenAI Chat Model",
+        "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+        "typeVersion": 1.2,
+        "position": [300, 200]
+      },
+      {
+        "parameters": {
+          "toolDescription": "Converts USD to target currency using live rates from PayJoy API.",
+          "method": "GET",
+          "url": "https://payjoy-currency-converter.onrender.com/convert",
+          "sendQuery": true,
+          "queryParameters": {
+            "parameters": [
+              {
+                "name": "amount",
+                "value": "={{ $fromAI('amount', 'USD amount', 'number') }}"
+              },
+              {
+                "name": "currency",
+                "value": "={{ $fromAI('currency', 'ISO 4217 code', 'string') }}"
+              }
+            ]
+          },
+          "options": {
+            "response": {
+              "response": { "neverError": true, "responseFormat": "json" }
+            }
+          }
+        },
+        "id": "convert-tool-wa",
+        "name": "convert_currency",
+        "type": "n8n-nodes-base.httpRequestTool",
+        "typeVersion": 4.2,
+        "position": [500, 0]
+      },
+      {
+        "parameters": {
+          "resource": "sms",
+          "operation": "send",
+          "from": "whatsapp:+14155238886",
+          "to": "=whatsapp:+{{ $json.body.WaId }}",
+          "message": "={{ $json.output }}"
+        },
+        "id": "twilio-send",
+        "name": "Send WhatsApp Reply",
+        "type": "n8n-nodes-base.twilio",
+        "typeVersion": 1,
+        "position": [600, 0]
+      }
+    ],
+    "connections": {
+      "Twilio WhatsApp Webhook": {
+        "main": [[{ "node": "AI Agent", "type": "main", "index": 0 }]]
+      },
+      "OpenAI Chat Model": {
+        "ai_languageModel": [[{ "node": "AI Agent", "type": "ai_languageModel", "index": 0 }]]
+      },
+      "convert_currency": {
+        "ai_tool": [[{ "node": "AI Agent", "type": "ai_tool", "index": 0 }]]
+      },
+      "AI Agent": {
+        "main": [[{ "node": "Send WhatsApp Reply", "type": "main", "index": 0 }]]
+      }
+    },
+    "settings": { "executionOrder": "v1" },
+    "pinData": {}
+  }

@@ -1,0 +1,167 @@
+{
+    "name": "PayJoy Currency Converter Bot v1",
+    "nodes": [
+      {
+        "parameters": {
+          "public": true,
+          "mode": "hostedChat",
+          "initialMessages": "Hi! I can convert your installment amount to your local currency.\nTell me the amount in USD and the target currency, e.g. \"200 BRL\".",
+          "options": {}
+        },
+        "id": "chat-trigger",
+        "name": "Chat Trigger",
+        "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+        "typeVersion": 1.1,
+        "position": [0, 0],
+        "webhookId": "payjoy-chat"
+      },
+      {
+        "parameters": {
+          "jsCode": "const msg = ($json.chatInput || '').trim();\nconst match = msg.match(/(\\d+(?:\\.\\d+)?)\\s*([A-Za-z]{3})/);\nif (!match) {\n  return [{ json: { valid: false } }];\n}\nreturn [{ json: { valid: true, amount: parseFloat(match[1]), currency: match[2].toUpperCase() } }];"
+        },
+        "id": "parse-input",
+        "name": "Parse Input",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [220, 0]
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": { "caseSensitive": true, "typeValidation": "strict" },
+            "conditions": [
+              {
+                "leftValue": "={{ $json.valid }}",
+                "rightValue": true,
+                "operator": { "type": "boolean", "operation": "true", "singleValue": true }
+              }
+            ],
+            "combinator": "and"
+          }
+        },
+        "id": "if-valid-format",
+        "name": "Valid Format?",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2,
+        "position": [440, 0]
+      },
+      {
+        "parameters": {
+          "url": "=https://payjoy-currency-converter.onrender.com/convert?amount={{ $json.amount }}&currency={{ $json.currency }}",
+          "options": {
+            "response": {
+              "response": { "neverError": true, "responseFormat": "json" }
+            },
+            "timeout": 30000
+          }
+        },
+        "id": "call-api",
+        "name": "Call Conversion API",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [660, -100]
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": { "caseSensitive": true, "typeValidation": "loose" },
+            "conditions": [
+              {
+                "leftValue": "={{ $json.converted }}",
+                "rightValue": "",
+                "operator": { "type": "number", "operation": "exists", "singleValue": true }
+              }
+            ],
+            "combinator": "and"
+          }
+        },
+        "id": "if-success",
+        "name": "Conversion OK?",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2,
+        "position": [880, -100]
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "success-output",
+                "name": "output",
+                "value": "=${{ $json.amount_usd }} USD equals approximately {{ $json.converted }} {{ $json.currency }} (rate: {{ $json.rate }}). Is there anything else I can help you with?",
+                "type": "string"
+              }
+            ]
+          }
+        },
+        "id": "success-message",
+        "name": "Success Message",
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [1100, -160]
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "api-error-output",
+                "name": "output",
+                "value": "=Sorry, {{ $json.detail ? $json.detail.toLowerCase() : 'I can\\'t check the exchange rate right now' }}. Please try again in a few minutes, or try another currency like BRL, MXN, COP or ZAR.",
+                "type": "string"
+              }
+            ]
+          }
+        },
+        "id": "api-error-message",
+        "name": "API Error Message",
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [1100, -40]
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "format-error-output",
+                "name": "output",
+                "value": "I didn't quite get that. Please tell me the amount and currency together, e.g. \"200 BRL\".",
+                "type": "string"
+              }
+            ]
+          }
+        },
+        "id": "format-error-message",
+        "name": "Format Error Message",
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [660, 120]
+      }
+    ],
+    "connections": {
+      "Chat Trigger": {
+        "main": [[{ "node": "Parse Input", "type": "main", "index": 0 }]]
+      },
+      "Parse Input": {
+        "main": [[{ "node": "Valid Format?", "type": "main", "index": 0 }]]
+      },
+      "Valid Format?": {
+        "main": [
+          [{ "node": "Call Conversion API", "type": "main", "index": 0 }],
+          [{ "node": "Format Error Message", "type": "main", "index": 0 }]
+        ]
+      },
+      "Call Conversion API": {
+        "main": [[{ "node": "Conversion OK?", "type": "main", "index": 0 }]]
+      },
+      "Conversion OK?": {
+        "main": [
+          [{ "node": "Success Message", "type": "main", "index": 0 }],
+          [{ "node": "API Error Message", "type": "main", "index": 0 }]
+        ]
+      }
+    },
+    "settings": { "executionOrder": "v1" },
+    "pinData": {}
+  }

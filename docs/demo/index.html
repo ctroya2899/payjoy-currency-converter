@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PayJoy Currency Assistant</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: #f0f4f8;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 16px;
+    }
+    .chat-container {
+      width: 100%;
+      max-width: 420px;
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      height: 560px;
+    }
+    .chat-header {
+      background: #ffffff;
+      color: #2f3438;
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border-bottom: 3px solid #8DC63F;
+    }
+    .chat-header img { height: 26px; }
+    .chat-header h1 { font-size: 1.05rem; font-weight: 600; color: #2f3438; }
+    .chat-header p { font-size: 0.78rem; color: #6b7280; margin-top: 2px; }
+    .messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .bubble {
+      max-width: 85%;
+      padding: 10px 14px;
+      border-radius: 16px;
+      font-size: 0.9rem;
+      line-height: 1.4;
+    }
+    .bubble.bot {
+      background: #eef7e2;
+      color: #2f3438;
+      align-self: flex-start;
+      border-bottom-left-radius: 4px;
+    }
+    .bubble.user {
+      background: #2f3438;
+      color: #ffffff;
+      align-self: flex-end;
+      border-bottom-right-radius: 4px;
+    }
+    .bubble.error { background: #fde8e8; color: #9b1c1c; }
+    .input-area {
+      display: flex;
+      gap: 8px;
+      padding: 12px 16px;
+      border-top: 1px solid #e5e7eb;
+    }
+    .input-area input {
+      flex: 1;
+      border: 1px solid #d1d5db;
+      border-radius: 24px;
+      padding: 10px 16px;
+      font-size: 0.9rem;
+      outline: none;
+    }
+    .input-area input:focus { border-color: #8DC63F; }
+    .input-area button {
+      background: #8DC63F;
+      color: #2f3438;
+      border: none;
+      border-radius: 50%;
+      width: 42px;
+      height: 42px;
+      cursor: pointer;
+      font-size: 1.1rem;
+    }
+    .input-area button:disabled { opacity: 0.5; cursor: not-allowed; }
+    .typing { font-size: 0.8rem; color: #6b7280; padding: 0 16px 8px; }
+  </style>
+</head>
+<body>
+  <div class="chat-container">
+    <div class="chat-header">
+      <img src="payjoy-logo.png" alt="PayJoy" />
+      <div>
+        <h1>Currency Assistant</h1>
+        <p>Convert your installment to local currency</p>
+      </div>
+    </div>
+    <div class="messages" id="messages">
+      <div class="bubble bot">
+        Hi! Tell me the amount in USD and currency, e.g. <strong>200 BRL</strong>
+      </div>
+    </div>
+    <div class="typing" id="typing" style="display:none">Converting...</div>
+    <div class="input-area">
+      <input id="userInput" type="text" placeholder="e.g. 200 BRL" autocomplete="off" />
+      <button id="sendBtn" onclick="sendMessage()">➤</button>
+    </div>
+  </div>
+
+  <script>
+    const API_URL = "https://payjoy-currency-converter.onrender.com/convert";
+
+    const messagesEl = document.getElementById("messages");
+    const inputEl = document.getElementById("userInput");
+    const typingEl = document.getElementById("typing");
+    const sendBtn = document.getElementById("sendBtn");
+
+    function addBubble(text, type) {
+      const div = document.createElement("div");
+      div.className = `bubble ${type}`;
+      div.textContent = text;
+      messagesEl.appendChild(div);
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+    }
+
+    function parseInput(text) {
+      const match = text.trim().match(/(\d+(?:\.\d+)?)\s*([A-Za-z]{3})/);
+      if (!match) return null;
+      return { amount: match[1], currency: match[2].toUpperCase() };
+    }
+
+    async function sendMessage() {
+      const text = inputEl.value.trim();
+      if (!text) return;
+
+      addBubble(text, "user");
+      inputEl.value = "";
+      sendBtn.disabled = true;
+      typingEl.style.display = "block";
+
+      const parsed = parseInput(text);
+      if (!parsed) {
+        typingEl.style.display = "none";
+        addBubble('Please use format like "200 BRL" or "150 MXN".', "error");
+        sendBtn.disabled = false;
+        return;
+      }
+
+      try {
+        const url = `${API_URL}?amount=${parsed.amount}&currency=${parsed.currency}`;
+        const res = await fetch(url);
+        const data = await res.json();
+
+        typingEl.style.display = "none";
+
+        if (res.ok && data.converted) {
+          addBubble(
+            `$${data.amount_usd} USD equals approximately ${data.converted} ${data.currency} (rate: ${data.rate}).`,
+            "bot"
+          );
+        } else {
+          const detail = data.detail || "Could not convert. Try BRL, MXN, COP or ZAR.";
+          addBubble(`Sorry, ${detail}`, "error");
+        }
+      } catch (err) {
+        typingEl.style.display = "none";
+        addBubble("I can't reach the server right now. Please try again in a minute.", "error");
+      }
+
+      sendBtn.disabled = false;
+      inputEl.focus();
+    }
+
+    inputEl.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") sendMessage();
+    });
+  </script>
+</body>
+</html>

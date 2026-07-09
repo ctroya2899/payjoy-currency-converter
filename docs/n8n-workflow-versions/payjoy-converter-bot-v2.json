@@ -1,0 +1,107 @@
+{
+  "name": "PayJoy Currency Converter Bot v2 (AI)",
+  "nodes": [
+    {
+      "parameters": {
+        "public": true,
+        "mode": "hostedChat",
+        "initialMessages": "Hi! I'm PayJoy's currency assistant. Ask me to convert any USD amount to your local currency — e.g. \"How much is 200 dollars in Brazilian reais?\"",
+        "options": {
+          "title": "PayJoy Assistant",
+          "subtitle": "Currency conversion powered by AI",
+          "inputPlaceholder": "e.g. How much is 200 USD in BRL?"
+        }
+      },
+      "id": "chat-trigger-v2",
+      "name": "Chat Trigger",
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [0, 0],
+      "webhookId": "payjoy-chat-v2"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.chatInput }}",
+        "options": {
+          "systemMessage": "You are PayJoy's currency conversion assistant for customers in emerging markets.\n\nRules:\n- ALWAYS use the convert_currency tool to get exchange rates. Never estimate or guess rates.\n- Supported currencies: any valid ISO 4217 code (BRL, MXN, COP, ZAR, etc.).\n- If the tool returns an error, apologize and explain the issue in friendly terms.\n- Keep answers short. Always show: original USD amount, converted amount, currency, and rate used.\n- Only handle currency conversion questions. Politely decline anything else.\n- Example good response: \"$200 USD equals approximately R$1,027.86 BRL (rate: 5.1393).\""
+        }
+      },
+      "id": "ai-agent",
+      "name": "AI Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [300, 0]
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.0-flash",
+        "options": {
+          "temperature": 0.2
+        }
+      },
+      "id": "gemini-model",
+      "name": "Google Gemini Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [220, 220]
+    },
+    {
+      "parameters": {},
+      "id": "simple-memory",
+      "name": "Simple Memory",
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [420, 220]
+    },
+    {
+      "parameters": {
+        "toolDescription": "Converts a USD amount to a target currency using live exchange rates. Returns the converted amount and the exchange rate used. Call this whenever the user asks about currency conversion.",
+        "method": "GET",
+        "url": "https://payjoy-currency-converter.onrender.com/convert",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "amount",
+              "value": "={{ $fromAI('amount', 'The amount in USD to convert', 'number') }}"
+            },
+            {
+              "name": "currency",
+              "value": "={{ $fromAI('currency', 'The 3-letter ISO 4217 currency code e.g. BRL MXN COP ZAR', 'string') }}"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true,
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "id": "convert-tool",
+      "name": "convert_currency",
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [620, 220]
+    }
+  ],
+  "connections": {
+    "Chat Trigger": {
+      "main": [[{ "node": "AI Agent", "type": "main", "index": 0 }]]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [[{ "node": "AI Agent", "type": "ai_languageModel", "index": 0 }]]
+    },
+    "Simple Memory": {
+      "ai_memory": [[{ "node": "AI Agent", "type": "ai_memory", "index": 0 }]]
+    },
+    "convert_currency": {
+      "ai_tool": [[{ "node": "AI Agent", "type": "ai_tool", "index": 0 }]]
+    }
+  },
+  "settings": { "executionOrder": "v1" },
+  "pinData": {}
+}
