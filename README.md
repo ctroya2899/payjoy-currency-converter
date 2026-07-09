@@ -104,6 +104,12 @@ Built with **n8n** (chosen over Landbot — see technical choices) in two versio
 - **v1 — deterministic flow** (`payjoy-converter-bot-v1.json`): parses "200 BRL"-style input with a Code node, calls the API, and formats the reply. Simple, cheap, predictable.
 - **v2 — AI Agent** (`payjoy-converter-bot-v2.json`): a Google Gemini agent with the API registered as an HTTP tool. Understands natural language ("How much is 200 dollars in Brazilian reais?") and conversation memory. **The live demo runs v2.**
 
+The v2 workflow in n8n:
+
+![n8n workflow v2 - AI Agent](docs/n8n-workflow.png)
+
+The Chat Trigger receives the message, the AI Agent (Gemini) interprets it and calls `convert_currency` — an HTTP Request tool pointing to the deployed API — then writes the reply. Simple Memory keeps the conversation context. To reproduce it, import the JSON into any n8n instance and attach your own Gemini credential (credentials are never exported).
+
 The agent's system prompt enforces that **every rate must come from the API tool** — the model is forbidden from answering with rates from its own knowledge. If the API is unavailable, the bot says so instead of inventing a number.
 
 ### Conversation examples
